@@ -31,143 +31,238 @@ namespace JazInterpreter
         {
             Stack<int> myStack = null;
             Stack<int> start = null;
+            Dictionary<string, int> symbolTable = null;
+            Dictionary<string, int> labels = null;
+            int i, end, num1, num2, loc, pos;
+            string line, key, input;
 
-            int i, end, num1, num2, lvalue;
-            string line;
+            i = 0;
+            foreach (string s in file) //finds all labels for quick searches later when using call/goto
+            {
+                pos = s.IndexOf(' ');
+                if (pos != 0)
+                {
+                    key = s.Substring(0, pos);
+                    if (pos++ < s.Length)
+                    {
+                        input = s.Substring(pos++);
+                        if (key == "label")
+                        {
+                            labels.Add(input, i);
+                        }
+                    }
+                }
+                i++;
+            }
 
             i = 0;
             end = 0;
             while (end != -1)
             {
+                input = null;
                 line = file[i];
-                // need to add these to parse for the first space:
-                // push
-                // rvalue
-                // lvalue
-                // label
-                // goto
-                // gofalse
-                // gotrue
-                // show
-                // call
+                pos = line.IndexOf(' ');
+                if (pos != 0) //sets the key
+                {
+                    key = line.Substring(0, pos);
+                    if (pos++ < line.Length)
+                        input = line.Substring(pos++);
+                }
+                else
+                {
+                    key = line;
+                }
 
-                if (line == ":=")
+                if (!String.IsNullOrEmpty(input)) //these keys require an input and will be skipped if one is not found
                 {
-                    // will write num1 to variable at lvalue.
-                    num1 = myStack.Pop();
-                    lvalue = myStack.Pop();
-                }
-                else if (line == "pop")
-                {
-                    myStack.Pop();
-                }
-                else if (line == "copy")
-                {
-                    num1 = myStack.Peek();
-                    myStack.Push(num1);
-                }
-                else if (line == "+")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(num1 + num2);
-                }
-                else if (line == "-")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(num1 - num2);
-                }
-                else if (line == "/")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(num1 / num2);
-                }
-                else if (line == "div")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(num1 % num2);
-                }
-                else if (line == "&")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(num1 & num2);
-                }
-                else if (line == "!")
-                {
-                    num1 = myStack.Pop();
-                    if (num1 == 1)
+                    if (key == "push")
+                    {
+                        num1 = Convert.ToInt32(input);
+                        myStack.Push(num1);
+                    }
+                    else if (key == "rvalue")
+                    {
+                        symbolTable.Add(input, 0);
                         myStack.Push(0);
+                    }
+                    else if (key == "lvalue")
+                    {
+                        if (!symbolTable.ContainsKey(input))
+                            symbolTable.Add(input, 0);
+                        num1 = GetIndex(symbolTable, input);
+                        myStack.Push(num1);
+                    }
+                    else if (key == "label")
+                    {
+                        break;
+                    }
+                    else if (key == "goto")
+                    {
+                        i = labels.Where(m => m.Key == input).Single().Value;
+                    }
+                    else if (key == "gofalse")
+                    {
+                        if (myStack.Pop() == 0)
+                            i = labels.Where(m => m.Key == input).Single().Value;
+                    }
+                    else if (key == "gotrue")
+                    {
+                        if (myStack.Pop() != 0)
+                            i = labels.Where(m => m.Key == input).Single().Value;
+                    }
+                    else if (key == "call")
+                    {
+                        num1 = Convert.ToInt32(input);
+                        myStack.Push(num1);
+                    }
+                    else if (key == "show")
+                    {
+                        Console.WriteLine(input);
+                    }
                     else
-                        myStack.Push(1);
+                    {
+                        //there was no command found that matched
+                    }
                 }
-                else if (line == "|")
+                else
                 {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(num1 | num2);
+                    if (key == ":=")
+                    {
+                        num1 = myStack.Pop();
+                        loc = myStack.Pop();
+                        input = symbolTable.ElementAt(loc).Key;
+                        symbolTable[input] = num1;
+                    }
+                    else if (key == "pop")
+                    {
+                        myStack.Pop();
+                    }
+                    else if (key == "copy")
+                    {
+                        num1 = myStack.Peek();
+                        myStack.Push(num1);
+                    }
+                    else if (key == "+")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(num1 + num2);
+                    }
+                    else if (key == "-")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(num1 - num2);
+                    }
+                    else if (key == "/")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(num1 / num2);
+                    }
+                    else if (key == "div")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(num1 % num2);
+                    }
+                    else if (key == "&")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(num1 & num2);
+                    }
+                    else if (key == "!")
+                    {
+                        num1 = myStack.Pop();
+                        if (num1 == 1)
+                            myStack.Push(0);
+                        else
+                            myStack.Push(1);
+                    }
+                    else if (key == "|")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(num1 | num2);
+                    }
+                    else if (key == "<>")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(Convert.ToInt32(num1 != num2));
+                    }
+                    else if (key == "<=")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(Convert.ToInt32(num2 <= num1));
+                    }
+                    else if (key == ">=")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(Convert.ToInt32(num2 >= num1));
+                    }
+                    else if (key == ">")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(Convert.ToInt32(num2 > num1));
+                    }
+                    else if (key == "<")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(Convert.ToInt32(num2 < num1));
+                    }
+                    else if (key == "=")
+                    {
+                        num1 = myStack.Pop();
+                        num2 = myStack.Pop();
+                        myStack.Push(Convert.ToInt32(num2 == num1));
+                    }
+                    else if (key == "print")
+                    {
+                        Console.WriteLine(myStack.Peek());
+                    }
+                    if (key == "show")
+                    {
+                        Console.WriteLine("");
+                    }
+                    else if (key == "begin")
+                    {
+                        break;
+                    }
+                    else if (key == "end")
+                    {
+                        break;
+                    }
+                    else if (key == "return")
+                    {
+                        i = start.Pop();
+                    }
+                    else if (key == "halt")
+                    {
+                        end = -1;
+                    }
+                    else
+                    {
+                        //there was no command found that matched
+                    }
                 }
-                else if (line == "<>")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(Convert.ToInt32(num1 != num2));
-                }
-                else if (line == "<=")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(Convert.ToInt32(num2 <= num1));
-                }
-                else if (line == ">=")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(Convert.ToInt32(num2 >= num1));
-                }
-                else if (line == ">")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(Convert.ToInt32(num2 > num1));
-                }
-                else if (line == "<")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(Convert.ToInt32(num2 < num1));
-                }
-                else if (line == "=")
-                {
-                    num1 = myStack.Pop();
-                    num2 = myStack.Pop();
-                    myStack.Push(Convert.ToInt32(num2 == num1));
-                }
-                else if (line == "print")
-                {
-                    Console.WriteLine(myStack.Peek());
-                }
-                else if (line == "begin")
-                {
-                    //Do nothing?
-                }
-                else if (line == "end")
-                {
-                    //Do nothing?
-                }
-                else if (line == "return")
-                {
-                    i = start.Pop();
-                }
-                else if (line == "halt")
-                {
-                    end = -1;
-                }
-                line = file[i + 1];
+                key = file[i++];
             }
+        }
+
+        public static int GetIndex(Dictionary<string, int> dictionary, string key)
+        {
+            for (int i = 0; i < dictionary.Count; i++)
+            {
+                if (dictionary.ElementAt(i).Key == key)
+                    return i;
+            }
+            return -1;
         }
     }
 }

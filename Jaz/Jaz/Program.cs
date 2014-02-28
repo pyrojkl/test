@@ -14,7 +14,8 @@ namespace JazInterpreter
             string filePath, fileExt;
             string[] myFile;
             Console.WriteLine("Enter the jaz file path:");
-            filePath = Console.ReadLine();
+            //filePath = Console.ReadLine();
+            filePath = "U:\\Jaz\\test.jaz";
             fileExt = Path.GetExtension(filePath);
             if (fileExt == ".jaz")
             {
@@ -29,10 +30,10 @@ namespace JazInterpreter
 
         public static void interpret(string[] file)
         {
-            Stack<int> myStack = null;
-            Stack<int> start = null;
-            Dictionary<string, int> symbolTable = null;
-            Dictionary<string, int> labels = null;
+            Stack<int> myStack = new Stack<int>();
+            Stack<int> start = new Stack<int>();
+            Dictionary<string, int> symbolTable = new Dictionary<string,int>();
+            Dictionary<string, int> labels = new Dictionary<string, int>();
             int i, end, num1, num2, loc, pos;
             string line, key, input;
 
@@ -40,7 +41,7 @@ namespace JazInterpreter
             foreach (string s in file) //finds all labels for quick searches later when using call/goto
             {
                 pos = s.IndexOf(' ');
-                if (pos != 0)
+                if (pos > 0)
                 {
                     key = s.Substring(0, pos);
                     if (pos++ < s.Length)
@@ -57,12 +58,12 @@ namespace JazInterpreter
 
             i = 0;
             end = 0;
-            while (end != -1)
+            while (end != -1 && i < file.Length)
             {
                 input = null;
                 line = file[i];
                 pos = line.IndexOf(' ');
-                if (pos != 0) //sets the key
+                if (pos > 0) //sets the key
                 {
                     key = line.Substring(0, pos);
                     if (pos++ < line.Length)
@@ -121,7 +122,8 @@ namespace JazInterpreter
                     }
                     else
                     {
-                        //there was no command found that matched
+                        Console.WriteLine("Compilation error.");
+                        end = -1;
                     }
                 }
                 else
@@ -226,7 +228,7 @@ namespace JazInterpreter
                     {
                         Console.WriteLine(myStack.Peek());
                     }
-                    if (key == "show")
+                    else if (key == "show")
                     {
                         Console.WriteLine("");
                     }
@@ -248,11 +250,14 @@ namespace JazInterpreter
                     }
                     else
                     {
-                        //there was no command found that matched
+                        Console.WriteLine("Compilation error.");
+                        end = -1;
                     }
                 }
                 key = file[i++];
             }
+            Console.WriteLine("Done.");
+            Console.ReadLine();
         }
 
         public static int GetIndex(Dictionary<string, int> dictionary, string key)

@@ -148,31 +148,31 @@ namespace JazInterpreter
                     {
                         num1 = myStack.Pop();
                         num2 = myStack.Pop();
-                        myStack.Push(num1 + num2);
+                        myStack.Push(num2 + num1);
                     }
                     else if (key == "-")
                     {
                         num1 = myStack.Pop();
                         num2 = myStack.Pop();
-                        myStack.Push(num1 - num2);
+                        myStack.Push(num2 - num1);
                     }
                     else if (key == "/")
                     {
                         num1 = myStack.Pop();
                         num2 = myStack.Pop();
-                        myStack.Push(num1 / num2);
+                        myStack.Push(num2 / num1);
                     }
                     else if (key == "div")
                     {
                         num1 = myStack.Pop();
                         num2 = myStack.Pop();
-                        myStack.Push(num1 % num2);
+                        myStack.Push(num2 % num1);
                     }
                     else if (key == "&")
                     {
                         num1 = myStack.Pop();
                         num2 = myStack.Pop();
-                        myStack.Push(num1 & num2);
+                        myStack.Push(num2 & num1);
                     }
                     else if (key == "!")
                     {
@@ -256,8 +256,6 @@ namespace JazInterpreter
                 }
                 key = file[i++];
             }
-            Console.WriteLine("Done.");
-            Console.ReadLine();
         }
 
         public static int GetIndex(Dictionary<string, int> dictionary, string key)
